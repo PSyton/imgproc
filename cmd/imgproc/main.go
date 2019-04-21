@@ -1,4 +1,4 @@
-package main // import "github.com:PSyton/imgproc/cmd/yams"
+package main // import "github.com/psyton/imgproc/cmd/imgproc"
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jessevdk/go-flags"
+	log "github.com/sirupsen/logrus"
 
-	"github.com:PSyton/imgproc/internal"
+	"imgproc/internal"
 )
 
 var revision = "unknown"
@@ -37,9 +37,11 @@ func main() {
 
 	initLogger(options.LogLevel)
 
-	internal.ResetEnvs()
-
 	log.Printf("imgproc %s (log level: %s)", revision, options.LogLevel)
+
+	if err := os.MkdirAll(options.UploadLocation, os.ModePerm); err != nil {
+		log.Panicf("Can't create upload folder")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() { // catch signal and invoke graceful termination

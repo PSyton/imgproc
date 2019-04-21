@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
-	"strings"
+	"fmt"
+
+	"imgproc/internal/processing"
 )
 
 type startable interface {
@@ -12,18 +14,24 @@ type startable interface {
 
 // Application instance
 type Application struct {
-	Options
 	services []startable
 }
 
-// New create new Application instance
+// NewApplication create new Application instance
 func NewApplication(aOptrions Options) (*Application, error) {
 	services := []startable{}
 
-	services = append(services, newServer(aOptrions.Listen, aOptrions.Port))
+	tools := processing.NewTools(aOptrions.UploadLocation, aOptrions.PreviewSize)
+
+	srv := newServer(aOptrions.Listen, aOptrions.Port, tools)
+
+	if srv == nil {
+		return nil, fmt.Errorf("Can't create server")
+	}
+
+	services = append(services, srv)
 
 	return &Application{
-		Options:  aOptrions,
 		services: services,
 	}, nil
 }
