@@ -20,10 +20,6 @@ func (s *Server) processImageHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if processor == nil {
-		return echo.NewHTTPError(http.StatusBadRequest)
-	}
-
 	result, err := processor.Process()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -37,25 +33,28 @@ func (s *Server) createProcessor(c echo.Context) (proc imageProcessor, err error
 	ctype := req.Header.Get(echo.HeaderContentType)
 	if req.ContentLength == 0 {
 		proc, err = processing.NewURLProcessor(c.QueryParam("url"), s.tools)
-	} else {
-		switch {
-		case strings.HasPrefix(ctype, echo.MIMEApplicationJSON):
-			proc, err = processing.NewJSONProcessor(req.Body, s.tools)
-		case strings.HasPrefix(ctype, echo.MIMEMultipartForm):
-			form, e := c.MultipartForm()
-			if e != nil {
-				err = e
-				return
-			}
-			files, ok := form.File["image"]
-			if ok && len(files) == 1 {
-				proc, err = processing.NewFormProcessor(files[0], s.tools)
+		if err == nil {
+			return
+		}
+	}
+
+	switch {
+	case strings.HasPrefix(ctype, echo.MIMEApplicationJSON):
+		proc, err = processing.NewJSONProcessor(req.Body, s.tools)
+	case strings.HasPrefix(ctype, echo.MIMEMultipartForm):
+		form, e := c.MultipartForm()
+		if e != nil {
+			err = e
+			return
+		}
+		files, ok := form.File["image"]
+		if ok && len(files) == 1 {
+			proc, err = processing.NewFormProcessor(files[0], s.tools)
+		} else {
+			if !ok {
+				err = fmt.Errorf("No image field n form")
 			} else {
-				if !ok {
-					err = fmt.Errorf("No image field n form")
-				} else {
-					err = fmt.Errorf("Only single file allowed")
-				}
+				err = fmt.Errorf("Only single file allowed")
 			}
 		}
 	}
