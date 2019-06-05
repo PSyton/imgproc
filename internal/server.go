@@ -52,12 +52,15 @@ func (s *Server) Start() error {
 }
 
 // Shutdown API server
-func (s *Server) Shutdown() {
+func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	log.Warn("Shutting down the server")
 	if err := s.srv.Shutdown(ctx); err != nil {
 		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
