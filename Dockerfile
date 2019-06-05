@@ -2,6 +2,8 @@
 # backend build
 FROM golang:1.12-alpine as gobuilder
 
+RUN apk add --no-cache git
+
 WORKDIR /app
 COPY . ./
 
@@ -31,8 +33,8 @@ RUN chmod +x /imgproc/imgproc && chmod +x /init.sh
 #http port
 EXPOSE 80
 
-WORKDIR /mgls
+WORKDIR /imgproc
 
 ENTRYPOINT ["/init.sh"]
 
-CMD ["./mgls"]
+CMD ["./imgproc"]
